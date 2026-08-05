@@ -1,0 +1,43 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: usuarios
+  datasource:
+    url: jdbc:postgresql://localhost:5433/b2bmatch
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    properties:
+      hibernate:
+        default_schema: b2bmatch
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  # Nota: no hay bloque "flyway:" — Spring Boot 4.1.0 aún no trae auto-configuración
+  # de Flyway (sin módulo spring-boot-flyway en el classpath). La migración corre
+  # manualmente antes del contexto de Spring, ver UsuariosApplication.runMigrations().
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+jwt:
+  # Sin default: si JWT_SECRET no está seteada, el arranque falla en vez de firmar
+  # tokens con un secreto público conocido (estaba hardcodeado en este archivo antes
+  # de la Iteración 9 — cualquiera con acceso al repo podía falsificar tokens válidos).
+  # docker-compose.yml la inyecta para el stack local; ver .env.example en la raíz.
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+admin:
+  # Clave compartida para crear la(s) cuenta(s) admin (no hay registro público de
+  # ADMIN a propósito). Sin default: si no está seteada, el endpoint de bootstrap
+  # rechaza cualquier intento. Ver .env.example en la raíz.
+  bootstrap-key: ${ADMIN_BOOTSTRAP_KEY}

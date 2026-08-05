@@ -1,0 +1,34 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: notificaciones
+  datasource:
+    url: jdbc:postgresql://localhost:5433/b2bmatch
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    properties:
+      hibernate:
+        default_schema: b2bmatch
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+jwt:
+  secret: ${JWT_SECRET}
+
+internal:
+  # Clave compartida para que otros microservicios (ofertas, resenias) puedan
+  # crear notificaciones en nombre del sistema, sin un JWT de usuario.
+  service-key: ${INTERNAL_SERVICE_KEY}

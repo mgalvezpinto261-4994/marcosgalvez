@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FRONTEND
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: FRONTEND/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  backend:
+    name: Backend (usuarios + catalogo + ofertas + perfiles + resenias + notificaciones)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: b2bmatch
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/b2bmatch
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # Secreto dummy solo para CI (>= 256 bits, requerido por HS384). No es el
+      # secreto real de ningún ambiente — cada ambiente define el suyo vía
+      # variable de entorno (ver .env.example en la raíz).
+      JWT_SECRET: ci-only-dummy-secret-not-used-in-any-real-environment-1234567890
+      ADMIN_BOOTSTRAP_KEY: ci-only-dummy-admin-bootstrap-key
+      INTERNAL_SERVICE_KEY: ci-only-dummy-internal-service-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # usuarios corre primero: su Flyway (invocado manualmente antes del
+      # contexto de Spring, ver UsuariosApplication) deja el schema completo
+      # migrado en la misma base que catalogo reutiliza después.
+      - name: Test usuarios (aplica Flyway + valida esquema)
+        working-directory: BACKEND/usuarios
+        run: ./mvnw -B test
+
+      - name: Test catalogo (reutiliza el esquema ya migrado por usuarios)
+        working-directory: BACKEND/catalogo
+        run: ./mvnw -B test
+
+      - name: Test ofertas (reutiliza el esquema ya migrado por usuarios)
+        working-directory: BACKEND/ofertas
+        run: ./mvnw -B test
+
+      - name: Test perfiles (reutiliza el esquema ya migrado por usuarios)
+        working-directory: BACKEND/perfiles
+        run: ./mvnw -B test
+
+      - name: Test resenias (reutiliza el esquema ya migrado por usuarios)
+        working-directory: BACKEND/resenias
+        run: ./mvnw -B test
+
+      - name: Test notificaciones (reutiliza el esquema ya migrado por usuarios)
+        working-directory: BACKEND/notificaciones
+        run: ./mvnw -B test

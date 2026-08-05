@@ -1,0 +1,169 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-b2bmatch}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+    ports:
+      - "5434:5432"
+    volumes:
+      - b2bmatch-compose-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  usuarios:
+    build: ./BACKEND/usuarios
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      ADMIN_BOOTSTRAP_KEY: ${ADMIN_BOOTSTRAP_KEY:?ADMIN_BOOTSTRAP_KEY es obligatoria, ver .env.example}
+      # Es una base nueva (volumen propio de compose): Flyway corre las 18
+      # migraciones desde cero. No confundir con la base "b2bmatch-postgres"
+      # levantada a mano en la Iteración 7 (esa usa FLYWAY_BASELINE_VERSION=18
+      # si se le apunta este mismo servicio, ver PROGRESO.md).
+      FLYWAY_BASELINE_VERSION: "0"
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  catalogo:
+    build: ./BACKEND/catalogo
+    depends_on:
+      db:
+        condition: service_healthy
+      # catalogo no corre migraciones propias (ddl-auto: validate) — necesita
+      # esperar a que "usuarios" termine de aplicar el schema completo con
+      # Flyway antes de arrancar, si no su validación de entidades falla.
+      usuarios:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      # Mismo secreto que "usuarios" — valida los JWT en los endpoints de
+      # publicar servicios (POST /api/company-services, /api/professional-services).
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  perfiles:
+    build: ./BACKEND/perfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      # mismo motivo que catalogo: necesita el esquema ya migrado por usuarios.
+      usuarios:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  ofertas:
+    build: ./BACKEND/ofertas
+    depends_on:
+      db:
+        condition: service_healthy
+      # mismo motivo que catalogo: necesita el esquema ya migrado por usuarios.
+      usuarios:
+        condition: service_healthy
+      notificaciones:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      # Mismo secreto que "usuarios" — valida los JWT que usuarios emite.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+      NOTIFICACIONES_API_URL: http://notificaciones:8086
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY es obligatoria, ver .env.example}
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  resenias:
+    build: ./BACKEND/resenias
+    depends_on:
+      db:
+        condition: service_healthy
+      # mismo motivo que catalogo: necesita el esquema ya migrado por usuarios.
+      usuarios:
+        condition: service_healthy
+      notificaciones:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+      NOTIFICACIONES_API_URL: http://notificaciones:8086
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY es obligatoria, ver .env.example}
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  notificaciones:
+    build: ./BACKEND/notificaciones
+    depends_on:
+      db:
+        condition: service_healthy
+      # mismo motivo que catalogo: necesita el esquema ya migrado por usuarios.
+      usuarios:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-b2bmatch}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatoria, ver .env.example}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY es obligatoria, ver .env.example}
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  b2bmatch-compose-pgdata:
