@@ -27,10 +27,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatoria, ver .env.example}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       ADMIN_BOOTSTRAP_KEY: ${ADMIN_BOOTSTRAP_KEY:?ADMIN_BOOTSTRAP_KEY es obligatoria, ver .env.example}
-      # Es una base nueva (volumen propio de compose): Flyway corre las 18
-      # migraciones desde cero. No confundir con la base "b2bmatch-postgres"
-      # levantada a mano en la Iteración 7 (esa usa FLYWAY_BASELINE_VERSION=18
-      # si se le apunta este mismo servicio, ver PROGRESO.md).
+      # Es una base nueva (volumen propio de compose): Flyway corre las 19
+      # migraciones desde cero. La V19 reparte cada tabla a su schema por
+      # microservicio (b2bmatch_usuarios, b2bmatch_perfiles, ...). No confundir
+      # con la base "b2bmatch-postgres" levantada a mano en la Iteración 7 (esa
+      # usa FLYWAY_BASELINE_VERSION=18 si se le apunta este mismo servicio, ver
+      # PROGRESO.md).
       FLYWAY_BASELINE_VERSION: "0"
     ports:
       - "8081:8081"

@@ -1,16 +1,12 @@
--- Separación del schema compartido "b2bmatch" en UN SCHEMA POR MICROSERVICIO
--- (paso intermedio hacia database-per-service).
+-- Separa el schema compartido "b2bmatch" en UN SCHEMA POR MICROSERVICIO.
+-- Igual lógica que DATABASE/10_split_schemas.sql, pero como migración Flyway
+-- para que corra dentro del arranque de "usuarios", ANTES de que Hibernate
+-- valide los schemas (ddl-auto: validate).
 --
--- Ejecutar UNA vez sobre la base local (b2bmatch-postgres):
---   docker exec -i b2bmatch-postgres psql -U postgres -d b2bmatch -v ON_ERROR_STOP=1 < DATABASE/10_split_schemas.sql
---
--- Es atómico (todo en una transacción). El schema "b2bmatch" se CONSERVA
--- porque contiene flyway_schema_history (lo usa el servicio usuarios, que
--- tiene Flyway fijado ahí) y las funciones de pgcrypto (gen_random_uuid).
--- Las foreign keys sobreviven al mudar tablas entre schemas. Las secuencias
--- (serial) viajan automáticamente junto con su tabla al usar SET SCHEMA.
-
-BEGIN;
+-- Es idempotente (ALTER TABLE IF EXISTS): en bases ya separadas (como la local
+-- b2bmatch-postgres) no hace nada y solo queda registrada en flyway_schema_history.
+-- Flyway envuelve cada migración en una transacción; el schema "b2bmatch" se
+-- conserva con flyway_schema_history y las funciones de pgcrypto.
 
 CREATE SCHEMA IF NOT EXISTS b2bmatch_usuarios;
 CREATE SCHEMA IF NOT EXISTS b2bmatch_perfiles;
@@ -45,8 +41,3 @@ ALTER TABLE IF EXISTS b2bmatch.review SET SCHEMA b2bmatch_resenias;
 
 -- notificaciones: notification
 ALTER TABLE IF EXISTS b2bmatch.notification SET SCHEMA b2bmatch_notificaciones;
-
-COMMIT;
-
--- Verificación esperada (schemas b2bmatch_* con sus tablas):
---   SELECT schemaname, tablename FROM pg_tables WHERE schemaname LIKE 'b2bmatch_%' ORDER BY 1, 2;
