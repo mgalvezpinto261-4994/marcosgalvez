@@ -24,8 +24,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     @Query(value = """
         SELECT COUNT(*) > 0
-        FROM b2bmatch.quotation q
-        JOIN b2bmatch.service s ON s.id = q.service_id
+        FROM b2bmatch_ofertas.quotation q
+        JOIN b2bmatch_catalogo.service s ON s.id = q.service_id
         WHERE q.customer_id = :customerId
           AND s.professional_id = :professionalId
           AND q.status = 'ACTIVE'

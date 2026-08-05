@@ -19,9 +19,9 @@ public interface ProfessionalServiceRepository extends JpaRepository<Professiona
                c.name AS categoryName,
                CONCAT(pp.first_name, ' ', pp.last_name) AS professionalName,
                pp.city AS professionalCity
-        FROM b2bmatch.service s
-        JOIN b2bmatch.category c ON c.id = s.category_id
-        JOIN b2bmatch.professional_profile pp ON pp.id = s.professional_id
+        FROM b2bmatch_catalogo.service s
+        JOIN b2bmatch_catalogo.category c ON c.id = s.category_id
+        JOIN b2bmatch_perfiles.professional_profile pp ON pp.id = s.professional_id
         WHERE s.status = 'ACTIVE'
         ORDER BY s.created_at DESC
         """, nativeQuery = true)

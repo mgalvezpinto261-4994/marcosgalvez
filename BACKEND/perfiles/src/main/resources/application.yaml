@@ -5,13 +5,13 @@ spring:
   application:
     name: perfiles
   datasource:
-    url: jdbc:postgresql://localhost:5433/b2bmatch
+    url: jdbc:postgresql://localhost:5434/b2bmatch
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
   jpa:
     properties:
       hibernate:
-        default_schema: b2bmatch
+        default_schema: b2bmatch_perfiles
     hibernate:
       ddl-auto: validate
     show-sql: true

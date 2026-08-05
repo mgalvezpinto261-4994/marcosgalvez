@@ -21,7 +21,7 @@ public class UsuariosApplication {
 	// Package-private (no private) para que los tests de integración (@SpringBootTest)
 	// puedan invocarla en un @BeforeAll, ya que solo corre automáticamente desde main().
 	static void runMigrations() {
-		String url = System.getenv().getOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://localhost:5433/b2bmatch");
+		String url = System.getenv().getOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://localhost:5434/b2bmatch");
 		String user = System.getenv().getOrDefault("DB_USERNAME", "postgres");
 		String password = System.getenv().getOrDefault("DB_PASSWORD", "postgres");
 		// "0" asume una base vacía (docker-compose con volumen nuevo): Flyway corre las

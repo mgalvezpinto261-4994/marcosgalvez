@@ -19,9 +19,9 @@ public interface CompanyServiceRepository extends JpaRepository<CompanyService, 
                c.name AS categoryName,
                cp.company_name AS companyName,
                cp.city AS companyCity
-        FROM b2bmatch.company_service cs
-        JOIN b2bmatch.category c ON c.id = cs.category_id
-        JOIN b2bmatch.company_profile cp ON cp.id = cs.company_id
+        FROM b2bmatch_catalogo.company_service cs
+        JOIN b2bmatch_catalogo.category c ON c.id = cs.category_id
+        JOIN b2bmatch_perfiles.company_profile cp ON cp.id = cs.company_id
         WHERE cs.status = 'ACTIVE'
         ORDER BY cs.created_at DESC
         """, nativeQuery = true)

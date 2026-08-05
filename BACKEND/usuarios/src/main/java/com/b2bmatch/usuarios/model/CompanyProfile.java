@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "company_profile")
+@Table(name = "company_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class CompanyProfile {

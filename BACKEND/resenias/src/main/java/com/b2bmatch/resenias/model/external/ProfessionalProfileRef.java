@@ -11,7 +11,7 @@ import lombok.Setter;
  * Mapeo de solo lectura a "professional_profile" (dueña: "perfiles"/"usuarios").
  */
 @Entity
-@Table(name = "professional_profile")
+@Table(name = "professional_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class ProfessionalProfileRef {

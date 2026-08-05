@@ -12,7 +12,7 @@ import lombok.Setter;
  * "perfiles"/"usuarios"). Mismo patrón que CompanyProfileRef/ProfessionalProfileRef.
  */
 @Entity
-@Table(name = "customer_profile")
+@Table(name = "customer_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class CustomerProfileRef {

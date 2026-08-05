@@ -13,7 +13,7 @@ import lombok.Setter;
  * dueño de un servicio al validar/mostrar cotizaciones.
  */
 @Entity
-@Table(name = "service")
+@Table(name = "service", schema = "b2bmatch_catalogo")
 @Getter
 @Setter
 public class ServiceRef {

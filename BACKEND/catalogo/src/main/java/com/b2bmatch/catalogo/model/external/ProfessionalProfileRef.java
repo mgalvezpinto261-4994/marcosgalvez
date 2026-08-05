@@ -13,7 +13,7 @@ import lombok.Setter;
  * professional_profile.id.
  */
 @Entity
-@Table(name = "professional_profile")
+@Table(name = "professional_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class ProfessionalProfileRef {

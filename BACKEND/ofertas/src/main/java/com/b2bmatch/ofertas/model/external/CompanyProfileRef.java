@@ -15,7 +15,7 @@ import lombok.Setter;
  * consciente que "catalogo" usa en CompanyServiceListingView (ver PROGRESO.md).
  */
 @Entity
-@Table(name = "company_profile")
+@Table(name = "company_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class CompanyProfileRef {

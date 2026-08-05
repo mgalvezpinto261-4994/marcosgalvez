@@ -12,7 +12,7 @@ import lombok.Setter;
  * Solo para resolver app_user.id (viene del JWT) -> company_profile.id.
  */
 @Entity
-@Table(name = "company_profile")
+@Table(name = "company_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class CompanyProfileRef {

@@ -12,7 +12,7 @@ import lombok.Setter;
  * "usuarios"). Ver CompanyProfileRef para la razón de este patrón.
  */
 @Entity
-@Table(name = "professional_profile")
+@Table(name = "professional_profile", schema = "b2bmatch_perfiles")
 @Getter
 @Setter
 public class ProfessionalProfileRef {
